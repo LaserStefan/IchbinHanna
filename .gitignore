@@ -1,0 +1,7 @@
+*.txt
+*.log
+*.csv
+test/
+.ipynb_checkpoints/
+code/.ipynb_checkpoints/
+*.jsonl

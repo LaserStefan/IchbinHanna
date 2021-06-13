@@ -10,7 +10,7 @@ twarc2 mentions "id" --start-time "2021-03-27" --end-time "2021-04-10" --flatten
 ## Hashtag-specific
 twarc2 search "(#IchbinHanna, OR IchbinHanna)" --archive --start-time "2021-06-07" --end-time "2021-06-13" --limit 10000 --flatten > hanna-limit.jsonl	
 
-## convert to scv (in Excel: use Unicode UTF-8 for Umlaute). More info here: https://github.com/DocNow/twarc-csv#extra-command-line-options
+## convert to csv (in Excel: use Unicode UTF-8 for Umlaute). More info here: https://github.com/DocNow/twarc-csv#extra-command-line-options
 twarc2 csv hanna-limit.jsonl > hanna-limit.csv
 
 ## in Excel: csv needs to be loaded, while selecting UTF-8 (Daten > ausText/CSV; auswählen: Dateiursprung > UTF-8)

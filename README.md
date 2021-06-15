@@ -24,3 +24,6 @@ It would be interesting to analyse all conversations that were kicked-off by a t
 To analyse the data, I recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though.  
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
+
+### Network Analysis
+To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom, showing the infamous Don Alphonso).

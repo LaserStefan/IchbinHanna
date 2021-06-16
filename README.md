@@ -37,6 +37,9 @@ To analyse the data, I recommend converting the json line files into ```.csv``` 
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
 
+## Qualitative analysis
+To facilitate the qualitative analysis process, a searchable and filterable table was created. It can be accessed via ```SearchableTable.html``` and should work interactively in any browser. The code used to create it can be found under ```code/SearchableTable.Rdm``` and the underlying data is stored in ```data/tweets_unique_keyinfo.rds```. The code used to create the underlying dataset is stored in the private OSF repository because it includes the full twitter metadata.
+
 ### Network Analysis
 To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom, showing the infamous Don Alphonso).
 

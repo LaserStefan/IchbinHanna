@@ -1,0 +1,93 @@
+---
+title: "Dataset display with search and filter options"
+author: "Elen Le Foll"
+date: "16/06/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(reactable) # Used to print a nice searchable table of tweets with emojis
+library(textclean)
+library(tidyverse) # Used for data wrangling
+library(tidytext) # Used to manipulate text
+
+```
+
+
+## Import data 
+
+```{r import, include=FALSE}
+# Import aggregated data with limited number of variables (excluding all personal data)
+tweets <- readRDS("Rdata/tweets_unique_keyinfo.rds")
+
+tweets <- tweets %>% 
+  mutate(query = entity, .keep = "unused")
+
+# Summary of which hashtags were used to scrap these tweets
+queries <- tweets %>% 
+  count(query) %>% 
+  reactable()
+
+# Total number of tweets in dataset
+nrow(tweets) # 23667
+
+```
+
+This script currently imports the `r nrow(tweets)` unique (i.e. non-duplicate) tweets scraped by Jana on 15 June 2021 with the following hashtag queries: 
+
+`r queries`
+
+This dataset only includes a limited number of metadata variables that exclude all personal data. Full metadata is only available in the private repository. 
+
+## Create subset by date 
+
+```{r date, include=FALSE}
+
+cutoff.date <- '2021-06-01'
+
+# Make date readable
+tweets$created_at <- as.Date(tweets$created_at, format = "%Y-%m-%d")
+
+# This is the earliest tweet we have:
+min(tweets$created_at) 
+
+# We might want to only examine tweets from 1 June 2021 onwards
+tweets <- tweets %>% 
+  filter(created_at >= as.Date(cutoff.date))
+
+nrow(tweets) # 9761 
+
+#saveRDS(tweets, "tweets_unique_keyinfo_June2021.rds")
+
+```
+
+This option creates a subset of the dataset on the earliest date we're interested in. Here, I have chosen `r cutoff.date` which reduces the dataset to `r nrow(tweets)` tweets.
+
+## Dataset display
+
+This is a fully searchable and filterable display of the tweets. You can adjust the widths of the individual columns in your browser to best fit your screen size. Emojis should be correctly displayed. Links are not currently clickable, but this could be changed if this is deemed a good idea by all.
+
+```{r display, echo=FALSE}
+
+reactable(tweets, 
+          filterable = TRUE, searchable = TRUE, bordered = TRUE, 
+          striped = TRUE, highlight = TRUE,
+          defaultPageSize = 150, showPageSizeOptions = TRUE, 
+          showSortable = TRUE, pageSizeOptions = c(25, 50, 75, 100, 200), 
+          defaultSortOrder = "desc",
+            columns = list(
+            created_at = colDef(defaultSortOrder = "asc"),
+            conversation_id = colDef(defaultSortOrder = "asc"),
+            id = colDef(defaultSortOrder = "asc"),
+            text = colDef(html = TRUE, minWidth = 300, resizable = TRUE),
+            public_metrics.like_count = colDef(filterable = FALSE),
+            public_metrics.quote_count = colDef(filterable =  FALSE),
+            public_metrics.reply_count = colDef(filterable =  FALSE)
+          )
+) 
+
+```
+
+Lots of additional options for display options with reactable tables are explained here: <https://www.infoworld.com/article/3515712/how-to-search-twitter-with-rtweet-and-r.html>

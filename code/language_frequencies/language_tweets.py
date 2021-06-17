@@ -83,12 +83,13 @@ def language_count(languageArray, filepath):
     csvfile = directory + f"/lf_results/lang-freq_{timestamp}.csv"
     sourcename = filepath
     with open(csvfile, "w") as file:
-      fieldnames = ["Country", "Frequency"]
+      fieldnames = ["Country", "Frequency", "%"]
       writer = csv.writer(file)
-      writer.writerow(["Language frequences for file or folder: ", sourcename, "%"])
+      writer.writerow(["Language frequences for file or folder: ", sourcename])
       writer.writerow(fieldnames)
       for key, value in counts.items():
-        writer.writerow([key, value, int(value/sumcounts*100)])
+          relative_frequency = value/sumcounts*100
+          writer.writerow([key, value, round(relative_frequency, 2)])
     # try:
     #     with open(csvfile, "w") as file:
     #       fieldnames = ["Country", "Frequency"]

@@ -5,21 +5,25 @@ import lzma
 from collections import Counter
 import sys
 from datetime import datetime
-import csv
+from defusedcsv import csv #avoid csv code injection (in case the data source is not reliable)
 
 directory = os.getcwd()
-# x = input("Enter File (F) or Directory (D)")
 
 def main(arguments):
     languageArray = []
     if arguments[1]=="file":
         path = arguments[2]
+        # calls tweet_languages_in_file for the file-path given when starting the script, gets array of language codes
         languageArray = tweet_languages_in_file(path)
     elif arguments[1]=="folder":
         path = arguments[2]
+        # calls tweet_languages_in_folder for the folder-path given when starting the script,  gets array of language codes
         languageArray = tweet_languages_in_folder(path)
-    elif arguments[1]=="-h":
-        print("Form: python3 language_tweets.py [Arg1] [path to file or folder]\n Args1:\n folder -> alle Datein im Ordner\n file -> alle Tweets in einer Datei")
+    elif arguments[1]=="-h" or arguments[1]=="--help":
+        print("Syntax: python3 language_tweets.py [ARGUMENTS] [PATH TO FILE OR FOLDER]\n ARGUMENTS:\n folder -> gets language count from all .json.xs files of the given folder\n file -> gets language count from a specific .jsonl.xs file")
+        quit()
+    else:
+        print("You have entered arguments, that make no sense to me")
         quit()
     language_count(languageArray, path)
     quit()
@@ -71,7 +75,7 @@ def tweet_languages_in_folder(folderpath):
     return(languageArray)
 
 def language_count(languageArray, filepath):
-    # sums all language codes
+    # gives the amount of all language codes
     sumcounts = len(languageArray)
     # creates a counter with absolute frequencies
     counts = Counter(languageArray)
@@ -82,23 +86,20 @@ def language_count(languageArray, filepath):
         os.makedirs("lf_results")
     csvfile = directory + f"/lf_results/lang-freq_{timestamp}.csv"
     sourcename = filepath
-    with open(csvfile, "w") as file:
-      fieldnames = ["Country", "Frequency", "%"]
-      writer = csv.writer(file)
-      writer.writerow(["Language frequences for file or folder: ", sourcename])
-      writer.writerow(fieldnames)
-      for key, value in counts.items():
-          relative_frequency = value/sumcounts*100
-          writer.writerow([key, value, round(relative_frequency, 2)])
-    # try:
-    #     with open(csvfile, "w") as file:
-    #       fieldnames = ["Country", "Frequency"]
-    #       writer = csv.writer(file)
-    #       writer.writerow(["Language frequences for file or folder: ", sourcename])
-    #       writer.writerow(fieldnames)
-    #       writer.writerows(counts.items() + "," + float(counts.value()/sumcounts))
-    # except:
-    #       print("Could not build csv-file.")
+    und_count = 0
+    # writes counts dictionary into csv file
+    try:
+        with open(csvfile, "w") as file:
+          fieldnames = ["Country", "Frequency", "%"]
+          writer = csv.writer(file)
+          writer.writerow(["Language frequences for file or folder: ", sourcename])
+          writer.writerow(fieldnames)
+          for key, value in counts.items():
+            relative_frequency = value/sumcounts*100
+            writer.writerow([key, value, round(relative_frequency, 2)])      
+    except:
+        print("Could not build csv-file.")
+
 
 if __name__ == '__main__':
     main(sys.argv)

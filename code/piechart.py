@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 labels = 'German', 'English', 'Others (all below < 1%)'
 sizes = [83, 11, 6]
 explode = (0.1, 0, 0)  # only "explode" the 1ST slice

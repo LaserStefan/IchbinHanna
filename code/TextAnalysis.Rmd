@@ -1,0 +1,41 @@
+---
+title: 'Textanalyse #ichBinHanna'
+author: "Elen Le Foll"
+date: "20/06/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+```
+
+## Welche Namen werden in #ichbinHanna nach "Ich bin" erwähnt?
+
+```{r ichbinNAMEN}
+
+ichbin <- str_subset(tweets$text, regex("ich bin [a-z]+", ignore_case = TRUE))
+
+library(stopwords)
+stop_german <- data.frame(word = stopwords("de"), stringsAsFactors = FALSE)
+
+ichbin <- str_extract_all(tweets$text, regex("ich bin [a-z]+", ignore_case = TRUE)) %>%
+  unlist() %>% 
+  str_replace(regex("ich bin ", ignore_case = TRUE), "") %>% 
+  as.factor() %>% 
+  fct_count() %>% 
+  mutate(word = f, f = NULL) %>% 
+  mutate(freq = n, n = NULL) %>% 
+  anti_join(stop_german, by = "word")
+
+head(ichbin)
+nrow(ichbin)
+  
+ichbin %>% as.data.frame()
+
+write_csv(ichbin, "tables/ichbin_NAMES.csv")
+
+```
+

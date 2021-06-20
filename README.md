@@ -37,7 +37,7 @@ To analyse the data, we recommend converting the json line files into ```.csv```
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
 
-```language_frequencies``` + ```piechart.py``` and ```wordcloud.ipynb``` are simple scripts to create illustrations of the language distribution (piechart) and most frequenct words (wordcloud) of #IchbinHanna tweets. Check ```plots``` for the results.
+```language_frequencies.py``` + ```piechart.py``` and ```wordcloud.ipynb``` are simple scripts to create illustrations of the language distribution (piechart) and most frequenct words (wordcloud) of #IchbinHanna tweets or other related corpora. Check ```plots``` for the results.
 
 ## Qualitative analysis
 To facilitate the qualitative analysis process, a searchable and filterable table can be created (see screenshot below). The code for this can be found under ```Rstats/SearchableTable.Rdm``` and the underlying data is stored in ```Rdata/tweets_unique_keyinfo.rds```. 

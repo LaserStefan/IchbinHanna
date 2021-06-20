@@ -6,7 +6,9 @@ Autor_innen: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Scha
 
 ## Script tweet_types_compared.ipynb
 
-The script uses the tweet_ratios_rel function from the ratio of retweet script to compare the distribution between two collections of tweets. It is now based on the comparison of #95vsWissZeitVG and #IchBinHanna, but can easily adapted for comparing other files.
+The script uses the tweet_ratios_rel function from the ratio of retweet script to compare the distribution between two collections of tweets. It is now based on the comparison of #95vsWissZeitVG and #IchBinHanna, but can easily adapted for comparing other files. The script produces a diagram of stacked bars like this: 
+
+![plot](https://github.com/LaserSteff/-IchbinHanna/blob/main/plots/tweet_types_compared.png)
 
 ## Script ratio of retweets in corpus
 

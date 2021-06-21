@@ -36,6 +36,47 @@ nrow(ichbin)
 ichbin %>% as.data.frame()
 
 write_csv(ichbin, "tables/ichbin_NAMES.csv")
+```
+
+## Idee für einen HANNA WordCloud
+
+```{r HANNAH}
+
+`%!in%` = Negate(`%in%`)
+set.seed(13)
+
+# Sortierte Liste von 
+ichbin <- read_csv("data/preliminary_names_freq.csv")
+head(ichbin)
+ichbin <- ichbin %>% 
+  filter(word %!in% c("postdoc", "staunend", "Autistin", "Historiker", "Doktorand")) %>% 
+  arrange(word) %>% 
+  sample_n(nrow(.))
+nrow(ichbin)
+
+ichbin1 <- ichbin %>% slice(1:(nrow(ichbin)/2))
+nrow(ichbin1)
+head(ichbin1)
+ichbin2 <- ichbin %>% slice((nrow(ichbin1)+1):(nrow(ichbin)))
+nrow(ichbin2)
+
+library("htmlwidgets")
+library("webshot")
+#webshot::install_phantomjs()
+
+# Top half of letterCloud
+letterCloud(ichbin1, size = 0.3, wordSize = 1, maxRotation = 0.99, word = "HAN", letterFont = , color = "black", backgroundColor = "pink")
+
+# Method to save letterClouds (!! not working for me sadly...)
+saveWidget(HAN,"plots/HAN.html",selfcontained = F)
+webshot("plots/HAN.html","plots/HAN.png", delay =5, vwidth = 700, vheight=500)
+
+# Second half of letterCloud
+letterCloud(ichbin2, size = 0.6, wordSize = 1, maxRotation = 0.99, word = "NAH", color = "black", backgroundColor = "pink")
+
+# Full HANNA letterCloud
+letterCloud(ichbin, size = 0.2, wordSize = 2, maxRotation = 0.99, word = "HANNA", color = "black", backgroundColor = "pink")
+
 
 ```
 

@@ -1,6 +1,6 @@
 # Analysis of Tweets for the #IchBinHannah Campaign
 
-Authos: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
+Authors: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 

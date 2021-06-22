@@ -1,8 +1,10 @@
-# Analysis of Tweets for the #IchBinHannah Campaign
+# Scripts for ratios of tweet types
 
-Autor_innen: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
+Authors: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
+
+[This script is part of the „Analysis of Tweets for the #IchBinHannah Campaign“ project. For more details and licence see: https://github.com/LaserSteff/-IchbinHanna/blob/main/README.md
 
 ## Script tweet_types_compared.ipynb
 

@@ -33,17 +33,19 @@ Data from Twitter can be scraped via the [Twitter v2 API](https://developer.twit
 
 
 ## Analysis
-To analyse the data, I recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though.  
+To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter.
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
 
+```language_frequencies.py``` + ```piechart.py``` and ```wordcloud.ipynb``` are simple scripts to create illustrations of the language distribution (piechart) and most frequenct words (wordcloud) of #IchbinHanna tweets or other related corpora. Check ```plots``` for the results.
+
 ## Qualitative analysis
-To facilitate the qualitative analysis process, a searchable and filterable table was created (see screenshot below). It can be accessed on the private OSF repository as ```Rstats/SearchableTable.html``` and should work interactively in any browser. The code used to create it can be found under ```Rstats/SearchableTable.Rdm``` and the underlying data is stored in ```Rdata/tweets_unique_keyinfo.rds```. 
+To facilitate the qualitative analysis process, a searchable and filterable table can be created (see screenshot below). The code for this can be found under ```Rstats/SearchableTable.Rdm``` and the underlying data is stored in ```Rdata/tweets_unique_keyinfo.rds```. 
 
 ![Screenshot 2021-06-16 at 14 22 27](https://user-images.githubusercontent.com/28561088/122218040-49a34400-ceae-11eb-8e9c-3d1747c16dac.png)
 
 ### Network Analysis
-To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom, showing the infamous Don Alphonso).
+To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom, showing the infamous Don Alphonso). This is still experimental, yet we identify broad and extensive networks of interactions, with a few islands.
 
 
 This work is licensed under a

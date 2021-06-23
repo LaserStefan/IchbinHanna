@@ -1,6 +1,8 @@
 # Analysis of Tweets for the #IchBinHannah Campaign
 
-Authors: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
+Authors: Jana Lasser, Stefan Laser, David Adler, Elen Le Foll, Christian Funk, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt
+
+This is a collaborative project that sits at the intersection of campaigning and doing (computational) social science research. We want to acknowledge the people who respond to this hashtag and feel responsible for it. Yet, we also want to capture the specificity of political dynamics more generally and to this end understand Twitter interactions as generative: they actively shape the discourse; users respond to each other explicitly or implicitly; the media, politicians and "external" actors learn, intervene or engage. As we ourselves "are Hanna", our resources are limited. But our aspiration is to combine quantitative with qualitative approaches.
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 

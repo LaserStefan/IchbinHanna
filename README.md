@@ -1,6 +1,8 @@
 # Analysis of Tweets for the #IchBinHannah Campaign
 
-Autor_innen: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
+Authors: Jana Lasser, Stefan Laser, David Adler, Elen Le Foll, Christian Funk, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt
+
+This is a collaborative project that sits at the intersection of campaigning and doing (computational) social science research. We want to acknowledge the people who respond to this hashtag and feel responsible for it. Yet, we also want to capture the specificity of political dynamics more generally and to this end understand Twitter interactions as generative: they actively shape the discourse; users respond to each other explicitly or implicitly; the media, politicians and "external" actors learn, intervene or engage. As we ourselves "are Hanna", our resources are limited. But our aspiration is to combine quantitative with qualitative approaches.
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
@@ -45,7 +47,7 @@ To facilitate the qualitative analysis process, a searchable and filterable tabl
 ![Screenshot 2021-06-16 at 14 22 27](https://user-images.githubusercontent.com/28561088/122218040-49a34400-ceae-11eb-8e9c-3d1747c16dac.png)
 
 ### Network Analysis
-To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom, showing the infamous Don Alphonso). This is still experimental, yet we identify broad and extensive networks of interactions, with a few islands.
+To get a sense of the Twitter interaction and its devisions, tools of network visualization can be used. Drawing on the open graph programm ["Gephi"](https://gephi.org/), the file ```Hanna.csv``` was imported and correlations drawn between ```user``` and ```in_reply_to_user.username```. The Force Atlas2 algorithm with basic options (no overlap and a few colours) was used. In ```plots```, two examples show the center of the network (a first zoom) and one seperate instance of interactions (a second zoom). This is experimental, yet we identify broad and extensive networks of interactions, with a few islands.
 
 
 This work is licensed under a

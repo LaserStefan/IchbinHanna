@@ -1,10 +1,10 @@
-# Analysis of Tweets for the #IchBinHannah Campaign
+# Script for language codes frequencies
 
-Autor_innen: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
+Authors: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt, Elen Le Foll, Christian Funk, David Adler
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
-## Script for language codes frequencies
+[This script is part of the „Analysis of Tweets for the #IchBinHannah Campaign“ project. For more details and licence see: https://github.com/LaserSteff/-IchbinHanna/blob/main/README.md]
 
 The script collects language codes from jsonl.xz files or foldes containing multiple such files. Its returns a .csv file with absolute and relative frequencies and saves it within a subfolder „lf_results" of the folder you run the script in. The files are automatically decompressed. Retweets are exclude from the frequency count.
 

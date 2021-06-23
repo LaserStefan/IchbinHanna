@@ -6,6 +6,8 @@ This is a collaborative project that sits at the intersection of campaigning and
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
+![alt text](https://github.com/LaserSteff/-IchbinHanna/raw/main/plots/wordcloud_names.png)
+
 ## Data  
 
 ### Included Datasets

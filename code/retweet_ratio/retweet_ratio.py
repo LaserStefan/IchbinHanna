@@ -10,7 +10,6 @@ def main(arguments):
     rel_freq_dict = get_rel_freq(freq_dict)
     print("\n")
     print("Absolute values")
-    print(str(freq_dict))
     for key, value in freq_dict.items():
         print(key + ": " + str(value))
     print("\n")
@@ -18,7 +17,6 @@ def main(arguments):
     for key, value in rel_freq_dict.items():
         print(key + ": " + str(value))
     print("\n")
-    print(str(rel_freq_dict))
 
 def get_freq(path):
     path = path

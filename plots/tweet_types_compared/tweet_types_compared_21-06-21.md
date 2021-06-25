@@ -4,7 +4,7 @@ Authors: Jana Lasser, Stefan Laser, Migle Bareikyte, Maria Blöchl, Tim Schatto-
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
-[This script is part of the „Analysis of Tweets for the #IchBinHannah Campaign“ project. For more details and licence see: https://github.com/LaserSteff/-IchbinHanna/blob/main/README.md
+This plot is part of the „Analysis of Tweets for the #IchBinHannah Campaign“ project. For more details and licence see: https://github.com/LaserSteff/-IchbinHanna/blob/main/README.md
 
 ## Plot
 
@@ -50,7 +50,7 @@ For more information on the queries, see: https://github.com/LaserSteff/IchbinHa
 
 The plot is based on the `retweet_ratio.py` script which returns numbers and ratios of tweet types for a file and the `tweet_types_compared.ipynb` which compares two files and returns numbers, ratios an the given plot.
 
-Both scripts can be found here: 
+Both scripts can be found here:  https://github.com/LaserSteff/IchbinHanna/tree/main/code/tweet_types_compared
 
 
 This work is licensed under a

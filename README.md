@@ -19,7 +19,7 @@ So far, we have included data for multiple hashtags of interest, from the time p
 * **#ACertainDegreeOfFlexibility**: Hashtag that ocurred shortly before the #IchBinHanna wave and was overtaken by it.
 * **#IchBinJelena**
 * **#IchBinMelek**
-* **IchBinNichtHanna**
+* **IchBinNichtHanna** (and a few smaller data sets)
 * In addition, the data set ```video_url``` includes all Tweets that directly contain the link https://www.bmbf.de/de/media-video-16944.html that points to the video from the ministry.
 
 All data sets were downloaded using twarc, using the script ```code/get_data.ipynb``` (see section [Getting data from Twitter](#getting-data-from-twitter)). The respecitve queries for each data set are stored in the folder ```code/queries```.
@@ -40,6 +40,11 @@ Data from Twitter can be scraped via the [Twitter v2 API](https://developer.twit
 To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter.
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
+
+We shared some of the data with the community (on tweets per day, tweets per hour and user per hashtag). We used Python's ```matplotlib``` to generate most of our insights and ```plots```. However, to generate an interactive graph of tweets per hour we used ```plotly``` and uploaded the result to a dummy repo. [You can access the result](https://lasersteff.github.io/Hanna_time/) and share it for free, you may also include it as an iframe in your website.
+
+Example: 
+```<iframe src="https://lasersteff.github.io/Hanna_time/" style="border:0px #ffffff none;" name="myiFrame" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" height="400px" width="650px" allowfullscreen></iframe>``
 
 ```language_frequencies.py``` + ```piechart.py``` and ```wordcloud.ipynb``` are simple scripts to create illustrations of the language distribution (piechart) and most frequenct words (wordcloud) of #IchbinHanna tweets or other related corpora. Check ```plots``` for the results. The image shown above (names in Hanna) represents a playful way of representing the diverse subjects interacting with the hashtag. What you can see there are first names of posts that started with "Ich bin...". Bar charts and scripts for comparing the distribution of tweets, retweets, quotes, and replies can be found in the `tweet_types_compared` folder in codes and plots.
 

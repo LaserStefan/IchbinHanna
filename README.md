@@ -44,7 +44,7 @@ The script ```analyse_data.ipynb``` includes some basic exploration of the numbe
 We shared some of the data with the community (on tweets per day, tweets per hour and user per hashtag). We used Python's ```matplotlib``` to generate most of our insights and ```plots```. However, to generate an interactive graph of tweets per hour we used ```plotly``` and uploaded the result to a dummy repo. [You can access the result](https://lasersteff.github.io/Hanna_time/) and share it for free, you may also include it as an iframe in your website.
 
 Example: 
-```<iframe src="https://lasersteff.github.io/Hanna_time/" style="border:0px #ffffff none;" name="myiFrame" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" height="400px" width="650px" allowfullscreen></iframe>``
+```<iframe src="https://lasersteff.github.io/Hanna_time/" style="border:0px #ffffff none;" name="myiFrame" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" height="400px" width="650px" allowfullscreen></iframe>```
 
 ```language_frequencies.py``` + ```piechart.py``` and ```wordcloud.ipynb``` are simple scripts to create illustrations of the language distribution (piechart) and most frequenct words (wordcloud) of #IchbinHanna tweets or other related corpora. Check ```plots``` for the results. The image shown above (names in Hanna) represents a playful way of representing the diverse subjects interacting with the hashtag. What you can see there are first names of posts that started with "Ich bin...". Bar charts and scripts for comparing the distribution of tweets, retweets, quotes, and replies can be found in the `tweet_types_compared` folder in codes and plots.
 

@@ -51,7 +51,9 @@ Note that the maximal font size is set to 130 when producing the wordcloud. This
 
 The script should be placed in the same directory as the `ichbinxy.py` script as it uses the subdirectory /results created by `ichbinxy.py` to collect the data for the wordcloud.
 
-The resulting wordlouds are written in this same directory.
+If both scripts are in the same directory, `ichbinxy.py` can also directly be run from the jupyter notebook using the suggested code within the file.
+
+The resulting wordlouds are written in the /results subdirectory also used by `ichbinxy.py`.
 
 ### To Do
 * The wordclouds size and dpi should be optimized. It seems not to adequatly react to a manipulation of the corresponding arguments from the Wordcloud package.

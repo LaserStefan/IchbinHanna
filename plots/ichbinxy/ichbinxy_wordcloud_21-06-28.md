@@ -41,7 +41,7 @@ Retweets are excluded from the the analysis, so that the image represen
 
 The python based jupyter notebook `wordcloud_from_frequencies.ipynb` is used to create both the simple wordcloud and the Hanna shaped wordloud. The font size has been reduced to 130 which yields a more even representation of the names.
 
-Both scripts can be found information here, including additional information:  https://github.com/LaserSteff/-IchbinHanna/tree/main/code/ichbinxy
+Both scripts can be found, including additional information, unnder `/code/ichbinxy`
 
 
 This work is licensed under a

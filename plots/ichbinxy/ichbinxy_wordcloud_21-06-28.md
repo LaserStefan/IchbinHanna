@@ -15,8 +15,7 @@ This plot is part of the „Analysis of Tweets for the #IchBinHannah Campaign“
 ![wordcloud](https://github.com/LaserSteff/-IchbinHanna/blob/main/plots/ichbinxy/wordcloud_names_hanna_21-06-28.png)
 
 ## Additional information
-The plots are base on .csv files with names and frequencies. These give a more complete and sound impression of the appearance of names within the formula „Ich bin [NAME]“. The corresponding table can be found here:
-https://github.com/LaserSteff/-IchbinHanna/tree/main/tables/ichbinxy
+The plots are base on .csv files with names and frequencies. These give a more complete and sound impression of the appearance of names within the formula „Ich bin [NAME]“. The corresponding table can be found under `/tables/ichbinxy`.
 
 
 ## Intrepretation

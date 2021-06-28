@@ -1,0 +1,2 @@
+#!/bin/bash
+twarc2 counts --start-time 2021-01-01 --end-time 2021-06-27 --archive --csv --granularity day '(#HannaImBundestag OR #HANNAIMBUNDESTAG OR #hannaimbundestag OR #Hannaimbundestag OR #hannaImbundestag OR #hannaimBundestag OR #HannaImbundestag OR #HannaimBundestag OR #hannaImBundestag OR #HannahImBundestag OR #HANNAHIMBUNDESTAG OR #hannahimbundestag OR #Hannahimbundestag OR #hannahImbundestag OR #hannahimBundestag OR #HannahImbundestag OR #HannahimBundestag OR #hannahImBundestag) lang:de' > ../../data/counts/HannaImBundestag_counts.csv

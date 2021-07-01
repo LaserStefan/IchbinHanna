@@ -37,7 +37,7 @@ Data from Twitter can be scraped via the [Twitter v2 API](https://developer.twit
 
 
 ## Analysis
-To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter.
+To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter. Some of the files are in subfolders, very soon we will do some housekeeping to give you a better overview.
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
 

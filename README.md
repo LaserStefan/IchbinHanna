@@ -11,7 +11,7 @@ This is a collaborative project that sits at the intersection of campaigning and
 ## Data  
 
 ### Included Datasets
-So far, we have included data for multiple hashtags of interest, from the time period between 2018-01-01 to 2021-06-21 (update), >43000 tweets stored in individual data files:
+So far, we have included data for multiple hashtags of interest, from the time period between 2018-01-01 to 2021-06-30 (update), >63000 tweets stored in individual data files:
 * **#WissZeitVG**: this is the "baseline" hashtag, referring to the law that governs academic employment in Germany. There was constant tweet activity with this hashtag throughout.
 * **#FristIstFrust**: this hashtag became popular in early 2019 and has been around ever since.
 * **#95vsWissZeitVG**: this hashtag became popular in mid 2020 and has been around ever since.

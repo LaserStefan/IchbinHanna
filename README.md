@@ -35,6 +35,7 @@ in your command line. Similarly, by using the [twarc conversations](https://twar
 ### Getting data from Twitter
 Data from Twitter can be scraped via the [Twitter v2 API](https://developer.twitter.com/en/docs/twitter-api/early-access). To get access to full archival search (i.e. be able to search for Tweets that were tweeted longer than one week ago), you will need ["academic access"](https://developer.twitter.com/en/products/twitter-api/academic-research) to the twitter API. Once you have access, scraping tweets is fairly easy, using for example the command line tool [twarc](https://twarc-project.readthedocs.io/en/latest/twarc2/#conversations). We provide scripts that scrape the data for our hashtag(s) of interest in the folder ```code```(see ```basic-twarc-code.txt``` and ```get_data.ipynb```).
 
+![hanna frequency](https://github.com/LaserSteff/-IchbinHanna/raw/main/plots/tweet_frequency.png)
 
 ## Analysis
 To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter. Some of the files are in subfolders, very soon we will do some housekeeping to give you a better overview.

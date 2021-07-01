@@ -1,0 +1,3 @@
+#!/bin/bash
+twarc2 search --start-time 2021-01-01 --end-time 2021-06-29 --archive '(dauerstellenfürdaueraufgaben
+#DAUERSTELLENFÜRDAUERAUFGABEN OR #DauerstellenFürDaueraufgaben OR #dauerstellenFürDaueraufgaben OR #DauerstellenfürDaueraufgaben OR #DauerstellenFürdaueraufgaben OR #Dauerstellenfürdaueraufgaben OR #dauerstellenFürdaueraufgaben OR #dauerstellenfürDaueraufgaben OR #dauerstellenfuerdaueraufgaben OR #DAUERSTELLENFUERDAUERAUFGABEN OR #DauerstellenFuerDaueraufgaben OR #dauerstellenFuerDaueraufgaben OR #DauerstellenfuerDaueraufgaben OR #DauerstellenFuerdaueraufgaben OR #Dauerstellenfuerdaueraufgaben OR #dauerstellenFuerdaueraufgaben OR #dauerstellenfuerDaueraufgaben)' > ../../data/tweets/DauerstellenFürDaueraufgaben.jsonl

@@ -1,17 +1,18 @@
 # Analysis of Tweets for the #IchBinHannah Campaign
 
-Authors: Jana Lasser, Stefan Laser, David Adler, Elen Le Foll, Christian Funk, Migle Bareikyte, Maria Blöchl, Tim Schatto-Eckrodt
+Authors: #IchBinHanna Research Collective
+(in alphabetic order: David Adler, Migle Bareikyte, Elen Le Foll, Christian Funk, Stefan Laser, Jana Lasser, with additional help from Maria Blöchl, Tim Schatto-Eckrodt)
 
 This is a collaborative project that sits at the intersection of campaigning and doing (computational) social science research. We want to acknowledge the people who respond to this hashtag and feel responsible for it. Yet, we also want to capture the specificity of political dynamics more generally and to this end understand Twitter interactions as generative: they actively shape the discourse; users respond to each other explicitly or implicitly; the media, politicians and "external" actors learn, intervene or engage. As we ourselves "are Hanna", our resources are limited. But our aspiration is to combine quantitative with qualitative approaches.
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
-![hanna wordcloud](https://github.com/LaserSteff/-IchbinHanna/blob/main/plots/ichbinxy/wordcloud_names_hanna_21-06-28.png)
+![hanna wordcloud](https://github.com/LaserSteff/IchbinHanna/blob/main/plots/wordcloud_phrases.png)
 
 ## Data  
 
 ### Included Datasets
-So far, we have included data for multiple hashtags of interest, from the time period between 2018-01-01 to 2021-06-30 (update), >63000 tweets stored in individual data files:
+So far, we have included data for multiple hashtags of interest, from the time period between 2018-01-01 to 2021-07-04 (update), >75,000 tweets stored in individual data files:
 * **#WissZeitVG**: this is the "baseline" hashtag, referring to the law that governs academic employment in Germany. There was constant tweet activity with this hashtag throughout.
 * **#FristIstFrust**: this hashtag became popular in early 2019 and has been around ever since.
 * **#95vsWissZeitVG**: this hashtag became popular in mid 2020 and has been around ever since.
@@ -35,14 +36,15 @@ in your command line. Similarly, by using the [twarc conversations](https://twar
 ### Getting data from Twitter
 Data from Twitter can be scraped via the [Twitter v2 API](https://developer.twitter.com/en/docs/twitter-api/early-access). To get access to full archival search (i.e. be able to search for Tweets that were tweeted longer than one week ago), you will need ["academic access"](https://developer.twitter.com/en/products/twitter-api/academic-research) to the twitter API. Once you have access, scraping tweets is fairly easy, using for example the command line tool [twarc](https://twarc-project.readthedocs.io/en/latest/twarc2/#conversations). We provide scripts that scrape the data for our hashtag(s) of interest in the folder ```code```(see ```basic-twarc-code.txt``` and ```get_data.ipynb```).
 
-![hanna frequency](https://github.com/LaserSteff/-IchbinHanna/raw/main/plots/tweet_frequency.png)
+![hanna frequency](https://raw.githubusercontent.com/LaserSteff/IchbinHanna/main/plots/frequency_comparison_to_other_events/frequency_comparison_to_other_events.png)
 
 ## Analysis
 To analyse the data, we recommend converting the json line files into ```.csv``` files. This can be done using [twarc-csv](https://github.com/DocNow/twarc-csv), an extension for twarc. Conversion to .csv is also included in the script ```code/get_data.ipynb```. You will have to install the twarc-csv extension before it works, though. We used the free software Jupyter Notebooks to compile, explain, execute and export Python code. This is an easy and comfortable solution, but you can access and read the code without Jupyter. Some of the files are in subfolders, very soon we will do some housekeeping to give you a better overview.
 
 The script ```analyse_data.ipynb``` includes some basic exploration of the number of tweets for each of the hashtags over time, and the number of unique users engaged in each hashtag "wave". Visualizations that result from the analysis are stored in the folder ```plots```.
 
-We shared some of the data with the community (on tweets per day, tweets per hour and user per hashtag). We used Python's ```matplotlib``` to generate most of our insights and ```plots```. However, to generate an interactive graph of tweets per hour we used ```plotly``` and uploaded the result to a dummy repo. [You can access the result](https://lasersteff.github.io/Hanna_time/) and share it for free, you may also include it as an iframe in your website.
+We shared some of the data with the community (on tweets per day, tweets per hour and user per hashtag). We used Python's ```matplotlib``` to generate most of our insights and ```plots```. However, to generate an interactive graph of tweets per hour we used ```plotly``` and uploaded the result to a dummy repo. [You can access the result](https://lasersteff.github.io/Hanna_time/) and share it for free, you may also include it as an iframe in your website. You can also cite the version that covers the entire June:
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5068748.svg)](https://doi.org/10.5281/zenodo.5068748)
 
 Example:
 ```<iframe src="https://lasersteff.github.io/Hanna_time/" style="border:0px #ffffff none;" name="myiFrame" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" height="400px" width="650px" allowfullscreen></iframe>```

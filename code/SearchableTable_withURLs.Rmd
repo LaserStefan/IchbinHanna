@@ -1,0 +1,211 @@
+---
+title: "Dataset display with search and filter options"
+author: "Elen Le Foll"
+date: "16/06/2021"
+output: html_document
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(readbulk)
+library(reactable) # Used to print a nice searchable table of tweets with emojis
+library(readr)
+library(textclean)
+library(tidyverse) # Used for data wrangling
+library(tidytext) # Used to manipulate text
+```
+
+# Importing tweets
+
+Importing these CSV files generates a number of parsing errors on some of the larger datasets which, for now, I am just going to ignore. --> Something that will need looking into in future!
+
+```{r import}
+
+tweets <- read_bulk(here("data", "tweets"), extension = "csv", 
+                    fun = read_csv,
+                      col_types = 
+                        cols(`__twarc.retrieved_at` = col_skip(), 
+                             `__twarc.url` = col_skip(), `__twarc.version` = col_skip(), 
+                             attachments.poll.duration_minutes = col_skip(), 
+                             attachments.poll.end_datetime = col_skip(), 
+                             attachments.poll.id = col_skip(), 
+                             attachments.poll.options = col_skip(), 
+                             attachments.poll.voting_status = col_skip(), 
+                             attachments.poll_ids = col_skip(), 
+                             author.id = col_character(), 
+                             author.pinned_tweet_id = col_character(),
+                             id = col_character()))
+
+
+nrow(tweets) # 83239 on 16 June, 95938 on 22 June 2021, 131271 on 29 June 2021, 198103 on 1 Oct 2021
+
+#saveRDS(tweets, file = here("Rdata", "tweets_all.rds"))
+
+```
+
+# Removing duplicates
+
+```{r duplicates}
+
+tweets <- readRDS(file = here("Rdata", "tweets_all.rds"))
+
+summary(as.factor(tweets$File))
+
+# Order by date
+tweets <- tweets %>% 
+  mutate(created_at = as.Date(tweets$created_at, format = "%Y-%m-%d")) %>% 
+  arrange(created_at)
+
+# Remove duplicates
+length(unique(tweets$id)) # 23668 on 16 June; 76657 on 22 June, 102558 on 29 June, 157093 on 1 Oct
+length(unique(tweets$text)) # 23668 on 16 June; 27837 on 22 June, 36533 on 29 June, 55986 on 1 Oct
+
+# Seem to have a problem with some tweets not including our queried hashtags at all:
+tweets %>% 
+  filter(public_metrics.retweet_count > 5000) %>% 
+  select(id, author.name, text, File) %>% 
+  head()
+
+# This is why "wanted tag" variable was added
+# However not all our datasets have a wanted_tag column:
+summary(as.factor(tweets$wanted_tag)) 
+
+tweets %>% 
+  group_by(File, wanted_tag) %>% 
+  count() %>% 
+  as.data.frame()
+
+tweets <- tweets %>%
+  filter(wanted_tag=="TRUE" | is.na(wanted_tag)) %>%
+  distinct(text, .keep_all = T) 
+
+# Unique tweets left with wanted tags (thus removing junk)
+nrow(tweets) # 23668 on 16 June; 27837 on 22 June (this was before wanted_tag was added!), 25951 on 29 June, 39431 on 1 Oct
+
+# This step removes retweets with no added message
+tweets <- tweets %>% 
+  mutate(text = str_remove(text, "RT @.*: ")) %>% 
+  distinct(text, .keep_all = T) %>% 
+# Remove last empty tweet
+  filter(text != "")
+
+nrow(tweets) # 37233 on 1 Oct
+
+summary(as.factor(tweets$File))
+
+#saveRDS(tweets, file = here("Rdata", "tweets_unique.rds"))
+
+```
+
+
+## Import data 
+
+# Selecting variables for future use --> see SearchableTable.Rdm
+
+```{r selection, results='hide'}
+
+# Import data
+#tweets <- readRDS(file = here("Rdata", "tweets_unique.rds"))
+
+# See what metadata is available
+colnames(tweets)
+
+# Select what we need displayed in our SearchableTable
+tweets <- tweets %>% 
+  select(created_at, author.username, author.name, author.description, author.location, id, conversation_id, text, public_metrics.like_count, public_metrics.quote_count, public_metrics.reply_count, public_metrics.retweet_count) 
+
+```
+
+
+## Create subset by date 
+
+This chunk is currently not in use.
+
+```{r date, eval=FALSE, include=TRUE}
+
+cutoff.date <- '2021-06-10' # The first #IchbinHanna tweet by @SebastianKubon was published on 2021-06-10 so this seems like a logical cut-off point
+
+# Make date readable
+tweets$created_at <- as.Date(tweets$created_at, format = "%Y-%m-%d")
+
+# This is the earliest tweet we have:
+min(tweets$created_at) 
+
+# We might want to only examine tweets from 1 June 2021 onwards
+tweets <- tweets %>% 
+  filter(created_at >= as.Date(cutoff.date))
+
+nrow(tweets) # 28738 
+
+# This option creates a subset of the dataset on the earliest date we're interested in. Here, I have chosen `r cutoff.date` which reduces the dataset to `r nrow(tweets)` tweets.
+
+```
+
+
+## Add URLs to tweets
+
+```{r add url}
+
+# Piecing together tweets
+tweets <- tweets %>% 
+  mutate(id = as.character(id)) %>% 
+  mutate(URL = glue::glue("<a href='https://twitter.com/{author.username}/status/{id}'>>> </a>"))
+
+# Alternative suggested by David (involving redirecting though so takes a little longer to load)
+#tweets <- tweets %>% 
+ # mutate(URL = glue::glue("<a href='https://twitter.com/anyuser/status/{id}'>>> </a>"))
+
+```
+
+
+## Dataset display
+
+This is a fully searchable and filterable display of the tweets. You can adjust the widths of the individual columns in your browser to best fit your screen size. Emojis should be correctly displayed. 
+
+```{r display, echo=FALSE}
+
+tweets <- tweets %>% 
+  rename(handle = author.username,
+         likes = public_metrics.like_count,
+         quotes = public_metrics.quote_count,
+         replies = public_metrics.reply_count,
+         RTs = public_metrics.retweet_count
+         )
+
+colnames(tweets)
+
+reactable(tweets, 
+          filterable = TRUE, searchable = TRUE, bordered = TRUE, 
+          striped = TRUE, highlight = TRUE,
+          defaultPageSize = 150, showPageSizeOptions = TRUE, 
+          showSortable = TRUE, 
+          pageSizeOptions = c(25, 50, 75, 100, 200), 
+          defaultSortOrder = "desc",
+            columns = list(
+            created_at = colDef(defaultSortOrder = "asc"),
+            conversation_id = colDef(defaultSortOrder = "asc"),
+            id = colDef(defaultSortOrder = "asc"),
+            author.description = colDef(minWidth = 200, resizable = TRUE),
+            text = colDef(html = TRUE, minWidth = 300, resizable = TRUE),
+            likes = colDef(filterable = FALSE, minWidth = 50),
+            quotes = colDef(filterable =  FALSE, minWidth = 50),
+            replies = colDef(filterable =  FALSE, minWidth = 50),
+            RTs = colDef(filterable = TRUE, minWidth = 50), 
+            URL = colDef(html = TRUE, minWidth = 50)
+          )
+) 
+
+```
+
+Lots of additional options for display options with reactable tables are explained here: <https://www.infoworld.com/article/3515712/how-to-search-twitter-with-rtweet-and-r.html>

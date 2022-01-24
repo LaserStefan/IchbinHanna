@@ -1,0 +1,518 @@
+---
+title: "Twitter user classification"
+author: "Elen Le Foll"
+date: "10/11/2021"
+output: 
+  html_document:
+    toc: true
+---
+
+# Set-up
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(reactable)
+library(tidyverse)
+
+```
+
+# Import and filter data
+
+```{r import-from-csv, eval=FALSE}
+
+tweets <- read_bulk(here("data", "tweets"), extension = "csv", 
+                    fun = read_csv,
+                      col_types = 
+                        cols(`__twarc.retrieved_at` = col_skip(), 
+                             `__twarc.url` = col_skip(), `__twarc.version` = col_skip(), 
+                             attachments.poll.duration_minutes = col_skip(), 
+                             attachments.poll.end_datetime = col_skip(), 
+                             attachments.poll.id = col_skip(), 
+                             attachments.poll.options = col_skip(), 
+                             attachments.poll.voting_status = col_skip(), 
+                             attachments.poll_ids = col_skip(), 
+                             author.id = col_double(), 
+                             author.pinned_tweet_id = col_character(),
+                             id = col_character()))
+
+
+nrow(tweets) # 83239 on 16 June, 95938 on 22 June 2021, 131271 on 29 June 2021, 198103 on 1 Oct 2021
+
+# Check output
+tweets$author.id[4:9]
+tweets$id[46:52]
+
+#saveRDS(tweets, file = here("Rdata", "tweets_all.rds"))
+
+```
+
+## Data wrangling for unique tweets
+
+```{r import-rds, eval=FALSE}
+
+tweets <- readRDS(file = here("Rdata", "tweets_all.rds"))
+nrow(tweets) # 198103
+colnames(tweets)
+summary(as.factor(tweets$File))
+
+# Order by date
+tweets <- tweets %>% 
+  mutate(created_at = as.Date(tweets$created_at, format = "%Y-%m-%d")) %>% 
+  arrange(created_at)
+
+# Remove duplicates
+length(unique(tweets$id)) # 23668 on 16 June; 76657 on 22 June, 102558 on 29 June, 157093 on 1 Oct
+length(unique(tweets$text)) # 23668 on 16 June; 27837 on 22 June, 36533 on 29 June, 55986 on 1 Oct
+
+# Seem to have a problem with some tweets not including our queried hashtags at all:
+tweets %>% filter(public_metrics.retweet_count > 5000) %>% select(text, wanted_tag)
+
+# This is why "wanted tag" variable was added
+# However not all our datasets have a wanted_tag column:
+summary(as.factor(tweets$wanted_tag)) 
+
+x <- tweets %>% 
+  group_by(File, wanted_tag) %>% 
+  count() %>% 
+  as.data.frame()
+x
+ggplot(x, aes(y = n, x = File, colour = wanted_tag)) +
+  geom_segment( aes(x=File, xend=File, y=0, yend=n)) +
+  geom_point(size=4, alpha=0.6) +
+  theme_light() +
+  coord_flip()
+
+# Here we are keeping only tweets with wanted tags
+tweets <- tweets %>%
+  filter(wanted_tag=="TRUE" | is.na(wanted_tag)) %>%
+  filter(text != "")
+
+# Unique tweets left with wanted tags (thus removing junk but still including retweets)
+nrow(tweets) # 99669 on 1 Oct
+
+# Unique users
+length(unique(tweets$author.id)) # 15752
+length(unique(tweets$author.name)) # 15601
+
+# Remove users with an empty profile description?
+
+#saveRDS(tweets, here("Rdata", "wanted_tweets.rds"))
+
+```
+
+## Data wrangling for unique users
+
+```{r users}
+
+tweets <- readRDS(here("Rdata", "wanted_tweets.rds"))
+
+# Here we can see that some users in our dataset have updated/changed their Twitter bios over the course of our dataset collection:
+x <- tweets %>% filter(author.username == "jenniferhenkeHB") %>% select(author.description) %>% mutate(author.description = as.factor(author.description))
+summary(x$author.description)
+
+# Unique Twitter users in our dataset
+users <- tweets %>% 
+  distinct(author.id, .keep_all = T) 
+
+# Most prolific #ichbinHanna posters
+tweets %>% 
+  group_by(author.id, author.name) %>% 
+  count(sort = TRUE) 
+  
+author.tweet.total <- tweets %>% 
+  group_by(author.id) %>% 
+  count(sort = TRUE, name = "totaltweetsbyauthor")
+
+# Adding total tweets per author and a random number to evaluate random samples of the data
+set.seed(13)
+users <- left_join(users, author.tweet.total, by = "author.id") %>% 
+    mutate(RandNb = sample(1: nrow(users)))
+
+# It is correct that Kristin Eichhorn has/had two Twitter accounts?
+users %>% filter(author.name == "Kristin Eichhorn") %>% select(author.created_at, author.id, author.description, author.name, author.username, totaltweetsbyauthor)
+
+nrow(users) # 15752 unique users in our dataset as of 1 Oct 2021
+
+# Note on working with emoji
+#View(rtweet::emojis)
+x <- rtweet::emojis %>% filter(description == "brain")
+as.character(x$code)
+
+```
+
+# User classification (one-category per user)
+
+## Scanning Twitter names and profiles for keywords
+
+Open questions:
+
+- Where do PIs fit in? I've currently put them down as "profs" but obviously some are more like post-docs...
+
+```{r users-classification}
+
+# People in academia (which doesn't necessarily mean that they do research themselves)
+student.regex <- "\\b(studiere|student|HiWi|studentische|studi\\b)"
+postdoc.regex <- "\\b(Dr\\.?\\b|Postdoc|Post-doc|post doc|Ph\\.?D|Doctor|Doktor|D\\.?phil|Dr\\.?Phil|Akad\\.? Rat|akademischer? Rat|Univ\\.?-?Ass\\.?)"
+PhD.regex <- "Ph\\.?D\\.? st|PhD-?student|Ph\\.?D\\.?-?proje|Ph\\.?D proje|Ph\\.?D\\.?-?cand|Doktoran|Grad\\.? st|Graduate st|Ph\\.?D\\.? cand\\.?|doctoral research|\\bdoc\\.? research|doctoral cand|doc\\.? cand|D\\.?phil\\.? st|Dissertation|Doktorarbeit|PhDstudent|phdlife|phdchat|doctorant|Ph\\.?D\\.? program"
+prof.regex <- "\\b(Prof\\b|Profess?or|Assocprof|PI$)|Professur"
+jprof.regex <- "\\b(jprof|JunProf|Juniorprof|Jun\\.?-Prof|Junior prof|Jun\\.? prof)"
+other.academics.regex <- "research|forsch|wissenschaftler|scientist|lecturer|dozent|scolar|WiMi|\\bRA$|Lehrbeauftragt|fellow|Wissenschaftliche Mitarbeiter|wiss\\.? mit|\\blab|laboratory|\U0001f393|\U0001f52c|\U0001f4ca|\U0001f9e0|\U0001f9ec|\U0001f9ea|\U0001f9eb|universi|@Uni" # includes the following emoji (in this order): academic hat, microscope, bar chart, brain, double helix DNA, test tube, petri dish
+
+# Other professions
+meddoc.regex <- "\\bärztin$|\\barzt$|med\\.? doc|Fach(a|ä)rzt"
+teacher.regex <- "Lehrer|teacher|teaches"
+
+# Bots
+bot.regex <- "\\b(bot\\b|Twitter-?bot)"
+
+# Representatives of unions, politics and media
+union.regex <- "Gewerkschaft|\\bGEW$|\\bver\\.?di$|\\bDGB$"
+politics.regex <- "Abgeordnete|\\bMdL\\b|\\bMdB\\b|Minister|Staatssekret|Bürgermeister|Direktkandidat|\\bMEP$|\\blinke$|dielinke$|\\bSPD$|\\bPartei|\\bPartido|\\bParty"
+media.regex <- "Journalist|Autor|Schriftstell|Columnist|Zeitung|Zeitschrift|Magazin|Publizist|Journalismus"
+
+# Twitter accounts that are not from individuals but rather institutions/organisations of various kinds
+institution.regex <- "Verband|Zentrum|\\bLab$|\\bLabor|Institut|Center|Centre|Initiative|Universi|Fakultät|Fachbereich|Department|think-tank|Ausschuss|Gruppe|Group|Verlag|Press|Library|Bibliothek|Hochschule|\\bFH|\\bTH$|\\bUni|\\bTU$|\\bPH$|Museum|Verbund"
+
+users2 <- users %>% 
+  ## Students ##
+  mutate(user.group = ifelse(str_detect(author.username, regex(student.regex, ignore_case = TRUE)), "Student", NA)) %>%
+  mutate(user.group = ifelse(str_detect(author.name, regex(student.regex, ignore_case = TRUE)), "Student", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.description, regex(student.regex, ignore_case = TRUE)), "Student", user.group)) %>%
+  
+  ## PhD candidates ##
+  mutate(user.group = ifelse(str_detect(author.name, regex(PhD.regex, ignore_case = TRUE)), "Promovierende", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.username, regex(PhD.regex, ignore_case = TRUE)), "Promovierende", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.description, regex(PhD.regex, ignore_case = TRUE)), "Promovierende", user.group)) %>%
+  
+  ## Post-docs ##
+  mutate(user.group = ifelse(str_detect(author.name, regex(postdoc.regex, ignore_case = TRUE)) & is.na(user.group), "Postdoc", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(postdoc.regex, ignore_case = TRUE)) & is.na(user.group), "Postdoc", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(postdoc.regex, ignore_case = TRUE)) & is.na(user.group), "Postdoc", user.group)) %>%
+  
+  ## Profs ##
+  mutate(user.group = ifelse(str_detect(author.name, regex(prof.regex, ignore_case = TRUE)), "Prof", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(prof.regex, ignore_case = TRUE)), "Prof", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(prof.regex, ignore_case = TRUE)), "Prof", user.group)) %>%  
+  
+## Junior profs ##
+  mutate(user.group = ifelse(str_detect(author.name, regex(jprof.regex, ignore_case = TRUE)), "Jun. prof", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(jprof.regex, ignore_case = TRUE)), "Jun. prof", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(jprof.regex, ignore_case = TRUE)), "Jun. prof", user.group)) %>%  
+  
+## Medical doctors ##
+  mutate(user.group = ifelse(str_detect(author.name, regex(meddoc.regex, ignore_case = TRUE)), "Medical doctor", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(meddoc.regex, ignore_case = TRUE)), "Medical doctor", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(meddoc.regex, ignore_case = TRUE)), "Medical doctor", user.group)) %>%
+  
+  ## Bots ##
+    mutate(user.group = ifelse(str_detect(author.description, regex(bot.regex, ignore_case = TRUE)), "Bot", user.group)) %>%
+  
+  ## Political stakeholders ##
+      mutate(user.group = ifelse(str_detect(author.name, regex(politics.regex, ignore_case = TRUE)) & is.na(user.group), "Political rep", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(politics.regex, ignore_case = TRUE)) & is.na(user.group), "Political rep", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(politics.regex, ignore_case = TRUE)) & is.na(user.group), "Political rep", user.group)) %>%
+  
+  ## Union reps ##
+    mutate(user.group = ifelse(str_detect(author.name, regex(union.regex, ignore_case = TRUE)) & is.na(user.group), "Union rep", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(union.regex, ignore_case = TRUE)) & is.na(user.group), "Union rep", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(union.regex, ignore_case = TRUE)) & is.na(user.group), "Union rep", user.group)) %>%
+  
+  # Other academics
+    mutate(user.group = ifelse(str_detect(author.name, regex(other.academics.regex, ignore_case = TRUE)) & is.na(user.group), "Academic unspecified", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(other.academics.regex, ignore_case = TRUE)) & is.na(user.group), "Academic unspecified", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(other.academics.regex, ignore_case = TRUE)) & is.na(user.group), "Academic unspecified", user.group)) %>%
+  
+## Teachers (outside of higher education) ##
+      mutate(user.group = ifelse(str_detect(author.name, regex(teacher.regex, ignore_case = TRUE)) & is.na(user.group), "Teacher", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(teacher.regex, ignore_case = TRUE)) & is.na(user.group), "Teacher", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(teacher.regex, ignore_case = TRUE)) & is.na(user.group) & str_detect(author.description, regex( "Lehrerbildung|Lehrer(\\*|:)innenbil|teacher education", ignore_case = TRUE), negate = TRUE), "Teacher", user.group)) %>%
+
+  # Other entities
+  mutate(user.group = ifelse(str_detect(author.name, regex(media.regex, ignore_case = TRUE)) & is.na(user.group), "Media", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(media.regex, ignore_case = TRUE)) & is.na(user.group), "Media", user.group)) %>%
+    mutate(user.group = ifelse(str_detect(author.description, regex(media.regex, ignore_case = TRUE)) & is.na(user.group), "Media", user.group)) %>%
+  
+      mutate(user.group = ifelse(str_detect(author.name, regex(institution.regex, ignore_case = TRUE)) & is.na(user.group), "Institution", user.group)) %>%
+  mutate(user.group = ifelse(str_detect(author.username, regex(institution.regex, ignore_case = TRUE)) & is.na(user.group), "Institution", user.group)) %>%
+
+mutate(user.group = as.factor(user.group))
+
+# Print results of user classification
+users2 %>% group_by(user.group) %>% count()
+
+# Print results of classification per tweet (as a percentage of tweet volume)
+users2 %>% 
+  group_by(user.group) %>% 
+  summarise(tweetnb = sum(totaltweetsbyauthor)) %>% 
+  mutate(tweetvolume = tweetnb/sum(tweetnb)*100) %>% 
+  select(user.group, tweetvolume) %>% 
+  arrange(-tweetvolume)
+
+```
+
+```{r user.not.sorted.table}
+
+users.not.sorted <- users2 %>% select(author.username, author.name, author.description, user.group, totaltweetsbyauthor) %>% filter(is.na(user.group))
+
+users.not.sorted %>% ggplot(aes(x = totaltweetsbyauthor)) +
+  geom_histogram(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  scale_x_log10()
+
+summary(users.not.sorted$totaltweetsbyauthor)
+
+# Percentage of unclassified users with only one tweet in the dataset
+(users.not.sorted %>% filter(totaltweetsbyauthor==1) %>% nrow()) / nrow(users.not.sorted)*100
+
+# Percentage of unclassified users with absolutely nothing in their author.description
+(users %>% filter(is.na(author.description)) %>% nrow()) / nrow(users.not.sorted)*100
+
+# Percentage of tweets covered by the classification
+users2 %>% 
+  group_by(user.group) %>% 
+  summarise(totaltweets = sum(totaltweetsbyauthor),
+            totaltweetspercent = sum(totaltweetsbyauthor)/nrow(tweets)*100) %>% 
+  mutate(across(where(is.numeric), round, 2)) %>% 
+  as.data.frame()
+
+users2 %>% 
+  group_by(author.id, author.name) %>% 
+  count(sort = TRUE) 
+  
+author.tweet.total <- tweets %>% 
+  group_by(author.id) %>% 
+  count(sort = TRUE, name = "totaltweetsbyauthor")
+
+# Interactive table of sorted users to manually check classification success
+reactable(users.not.sorted, 
+          filterable = TRUE, searchable = TRUE, bordered = TRUE, 
+          striped = TRUE, highlight = TRUE,
+          defaultPageSize = 150, showPageSizeOptions = TRUE, 
+          showSortable = TRUE, 
+          #pageSizeOptions = c(25, 50, 75, 100, 200), 
+          defaultSortOrder = "desc",
+            columns = list(
+          author.description = colDef(html = TRUE, minWidth = 300, resizable = TRUE)))
+
+```
+
+## Manual classification
+
+```{r manual-classification}
+
+# Solutions would need to be found for these people. Manually look them up?
+users.not.sorted %>% filter(totaltweetsbyauthor > 100) %>% arrange(-totaltweetsbyauthor) %>% select(author.name, author.username, totaltweetsbyauthor)
+
+# Manually looking up top unsorted contributors to #ichbinHanna discourse
+users3 <- users2 %>% 
+  mutate(user.group = replace(user.group, author.username=="DrKEichhorn", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="dorothee_goetze", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="LenaOetzel", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="historiavocis", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="SebastianKubon", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="chrismeyer2203", "Prof")) %>%
+  mutate(user.group = replace(user.group, author.username=="SilkeZM", "Promovierende")) %>%
+  mutate(user.group = replace(user.group, author.username=="karolinedoering", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="t_winnerling", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="Schaerferin", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="NGA_Wiss", "Institution")) %>%
+  mutate(user.group = replace(user.group, author.username=="Chrisl7000", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="simoneclaar", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="EconomicEthics", "Postdoc")) %>%
+  mutate(user.group = replace(user.group, author.username=="MittelbauIniHH", "Institution")) %>% 
+  mutate(user.group = replace(user.group, author.username=="frankstengel", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="dawwidd", "Promovierende")) %>% ## Check with David!!
+  mutate(user.group = replace(user.group, author.username=="Fionnindy", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="christfunk", "Postdoc")) %>% ## Check with Christian!!
+  mutate(user.group = replace(user.group, author.username=="Gonzoweirdworld", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="mahaelhissy", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="GrundMar", "Promovierende")) %>% 
+  mutate(user.group = replace(user.group, author.username=="nieniewieder", "Promovierende")) %>% 
+  mutate(user.group = replace(user.group, author.username=="elpeterico", "Academic unspecified")) %>% 
+  mutate(user.group = replace(user.group, author.username=="NicoNolden", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="lenski_k", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="mpoessel", "Academic unspecified")) %>% 
+  mutate(user.group = replace(user.group, author.username=="stefan_laser_", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="gudrun_lotze", "Academic unspecified")) %>% 
+  mutate(user.group = replace(user.group, author.username=="SarahALang_", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="LukasRAWilde", "Postdoc")) %>% 
+  mutate(user.group = replace(user.group, author.username=="TVLfuerStudis", "Union rep")) %>% 
+  mutate(user.group = replace(user.group, author.username=="CarstenSchulte4", "Prof")) %>% 
+  mutate(user.group = replace(user.group, author.username=="HeikeMauer", "Postdoc")) %>% 
+ mutate(user.group = replace(user.group, author.username=="jorischeyder", "Postdoc"))
+
+```
+
+# Results of classification
+
+```{r final-results}
+
+# Print results of user classification
+users3 %>% group_by(user.group) %>% count()
+
+# Print results of classification per tweet (as a percentage of tweet volume)
+users3 %>% 
+  group_by(user.group) %>% 
+  summarise(tweetnb = sum(totaltweetsbyauthor)) %>% 
+  mutate(tweetvolume = tweetnb/sum(tweetnb)*100) %>% 
+  select(user.group, tweetvolume) %>% 
+  arrange(-tweetvolume)
+
+colnames(users3)
+
+users3 <- users3 %>% select(author.id, author.username, author.name, author.description, user.group, totaltweetsbyauthor) 
+
+#write_csv(users3, here("Rdata", "TwitterUserClassification.csv"))
+
+```
+
+## Tables for the manual evaluation of the user classification
+
+```{r users.all.table}
+
+users.all <- users3 %>% 
+  select(author.username, author.name, author.description, user.group, totaltweetsbyauthor) 
+
+reactable(users.all, 
+          filterable = TRUE, searchable = TRUE, bordered = TRUE, 
+          striped = TRUE, highlight = TRUE,
+          defaultPageSize = 150, showPageSizeOptions = TRUE, 
+          showSortable = TRUE, 
+          #pageSizeOptions = c(25, 50, 75, 100, 200), 
+          defaultSortOrder = "desc",
+            columns = list(
+          author.description = colDef(html = TRUE, minWidth = 300, resizable = TRUE)))
+
+```
+
+```{r user.sorted.table}
+
+users.sorted <- users3 %>% select(author.username, author.name, author.description, user.group, totaltweetsbyauthor) %>% filter(!is.na(user.group))
+
+reactable(users.sorted, 
+          filterable = TRUE, searchable = TRUE, bordered = TRUE, 
+          striped = TRUE, highlight = TRUE,
+          defaultPageSize = 150, showPageSizeOptions = TRUE, 
+          showSortable = TRUE, 
+          #pageSizeOptions = c(25, 50, 75, 100, 200), 
+          defaultSortOrder = "desc",
+            columns = list(
+          author.description = colDef(html = TRUE, minWidth = 300, resizable = TRUE)))
+
+```
+
+# Multiple user classification (not in use)
+
+```{r multiple-users-classification, eval=FALSE}
+
+# People in academia (which doesn't necessarily mean that they do research themselves)
+student.regex <- "\\b(studiere|student|HiWi|studentische|studi\\b)"
+postdoc.regex <- "\\b(Dr\\.?\\b|Postdoc|Post-doc|post doc|Ph\\.?D|Doctor|Doktor|D\\.?phil|Dr\\.?Phil|Akad\\.? Rat|akademischer? Rat|Univ\\.?-?Ass\\.?)"
+PhD.regex <- "Ph\\.?D\\.? st|PhD-?student|Ph\\.?D\\.?-?proje|Ph\\.?D proje|Ph\\.?D\\.?-?cand|Doktoran|Grad\\.? st|Graduate st|Ph\\.?D\\.? cand\\.?|doctoral research|\\bdoc\\.? research|doctoral cand|doc\\.? cand|D\\.?phil\\.? st|Dissertation|Doktorarbeit|PhDstudent|phdlife|phdchat|doctorant|Ph\\.?D\\.? program"
+prof.regex <- "\\b(Prof\\b|Profess?or|Assocprof|PI$)|Professur"
+jprof.regex <- "\\b(jprof|JunProf|Juniorprof|Jun\\.?-Prof|Junior prof|Jun\\.? prof)"
+other.academics.regex <- "research|forsch|wissenschaftler|scientist|lecturer|dozent|scolar|WiMi|\\bRA$|Lehrbeauftragt|fellow|Wissenschaftliche Mitarbeiter|wiss\\.? mit|\\blab|laboratory|\U0001f393|\U0001f52c|\U0001f4ca|\U0001f9e0|\U0001f9ec|\U0001f9ea|\U0001f9eb|universi|@Uni" # includes the following emoji (in this order): academic hat, microscope, bar chart, brain, double helix DNA, test tube, petri dish
+
+# Other professions
+meddoc.regex <- "\\bärztin$|\\barzt$|med\\.? doc|Fach(a|ä)rzt"
+teacher.regex <- "Lehrer|teacher|teaches"
+
+# Bots
+bot.regex <- "\\b(bot\\b|Twitter-?bot)"
+
+# Representatives of unions, politics and media
+union.regex <- "Gewerkschaft|\\bGEW$|\\bver\\.?di$|\\bDGB$"
+politics.regex <- "Abgeordnete|\\bMdL\\b|\\bMdB\\b|Minister|Staatssekret|Bürgermeister|Direktkandidat|\\bMEP$|\\blinke$|dielinke$|\\bSPD$|\\bPartei|\\bPartido|\\bParty|\\bCDU$|\\bCSU$|\\bFPD$|Parlament"
+media.regex <- "Journalist|Autor|Schriftstell|Columnist|Zeitung|Zeitschrift|Magazin|Publizist|Journalismus"
+
+# Twitter accounts that are not from individuals but rather institutions/organisations of various kinds
+institution.regex <- "Verband|Zentrum|\\bLab$|\\bLabor|Institut|Center|Centre|Initiative|Universi|Fakultät|Fachbereich|Department|think-?tank|Ausschuss|Gruppe|Group|Verlag|Press|Library|Bibliothek|Hochschule|\\bFH|\\bTH$|\\bUni|\\bTU$|\\bPH$|Museum|Verbund"
+
+
+users2 <- users %>% 
+  
+  select(RandNb, author.username, author.name, author.description, totaltweetsbyauthor) %>%
+
+## Medical doctors ##
+  mutate(user.med.doc = str_detect(author.name, regex(meddoc.regex, ignore_case = TRUE))) %>%
+  mutate(user.med.doc = str_detect(author.username, regex(meddoc.regex, ignore_case = TRUE))) %>%
+    mutate(user.med.doc = str_detect(author.description, regex(meddoc.regex, ignore_case = TRUE))) %>%
+
+## Junior profs ##
+  mutate(user.jun.prof = str_detect(author.name, regex(jprof.regex, ignore_case = TRUE))) %>%
+  mutate(user.jun.prof = str_detect(author.username, regex(jprof.regex, ignore_case = TRUE))) %>%
+    mutate(user.jun.prof = str_detect(author.description, regex(jprof.regex, ignore_case = TRUE))) %>%  
+  
+  ## Profs ##
+  mutate(user.prof = ifelse(str_detect(author.name, regex(prof.regex, ignore_case = TRUE)) & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+  mutate(user.prof = ifelse(str_detect(author.username, regex(prof.regex, ignore_case = TRUE)) & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+    mutate(user.prof = ifelse(str_detect(author.description, regex(prof.regex, ignore_case = TRUE)) & user.jun.prof==FALSE, TRUE, FALSE)) %>%  
+  
+  ## Post-docs ##
+  mutate(user.postdoc = ifelse(str_detect(author.name, regex(postdoc.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+  mutate(user.postdoc = ifelse(str_detect(author.username, regex(postdoc.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+    mutate(user.postdoc = ifelse(str_detect(author.description, regex(postdoc.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+
+  ## PhD candidates ##
+  mutate(user.promovierende = ifelse(str_detect(author.name, regex(PhD.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE, TRUE, FALSE)) %>%
+    mutate(user.promovierende = ifelse(str_detect(author.username, regex(PhD.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE, TRUE, FALSE)) %>%
+  mutate(user.promovierende = ifelse(str_detect(author.description, regex(PhD.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE, TRUE, FALSE)) %>%
+
+  ## Students ##
+  mutate(user.student = ifelse(str_detect(author.username, regex(student.regex, ignore_case = TRUE)) & user.promovierende==FALSE & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+  mutate(user.student = ifelse(str_detect(author.name, regex(student.regex, ignore_case = TRUE)) & user.promovierende==FALSE & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+  mutate(user.student = ifelse(str_detect(author.description, regex(student.regex, ignore_case = TRUE)) & user.promovierende==FALSE & user.prof==FALSE & user.jun.prof==FALSE, TRUE, FALSE)) %>%
+  
+  # Other academics
+    mutate(user.academic.other = ifelse(str_detect(author.name, regex(other.academics.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE & user.student==FALSE & user.promovierende==FALSE, TRUE, FALSE)) %>%
+  mutate(user.academic.other = ifelse(str_detect(author.username, regex(other.academics.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE & user.student==FALSE & user.promovierende==FALSE, TRUE, FALSE)) %>%
+    mutate(user.academic.other = ifelse(str_detect(author.description, regex(other.academics.regex, ignore_case = TRUE)) & user.prof==FALSE & user.jun.prof==FALSE & user.postdoc==FALSE & user.student==FALSE & user.promovierende==FALSE, TRUE, FALSE)) %>%
+      
+  ## Bots ##
+    mutate(user.bot = str_detect(author.description, regex(bot.regex, ignore_case = TRUE))) %>%
+  
+  ## Political stakeholders ##
+      mutate(user.politician = str_detect(author.name, regex(politics.regex, ignore_case = TRUE))) %>%
+  mutate(user.politician = str_detect(author.username, regex(politics.regex, ignore_case = TRUE))) %>%
+    mutate(user.politician = str_detect(author.description, regex(politics.regex, ignore_case = TRUE))) %>%
+  
+  ## Union reps ##
+    mutate(user.unionist = str_detect(author.name, regex(union.regex, ignore_case = TRUE))) %>%
+  mutate(user.unionist = str_detect(author.username, regex(union.regex, ignore_case = TRUE))) %>%
+    mutate(user.unionist = str_detect(author.description, regex(union.regex, ignore_case = TRUE))) %>%
+  
+## Teachers (outside of higher education) ##
+      mutate(user.teacher = str_detect(author.name, regex(teacher.regex, ignore_case = TRUE))) %>%
+  mutate(user.teacher = str_detect(author.username, regex(teacher.regex, ignore_case = TRUE))) %>%
+    mutate(user.teacher = ifelse(str_detect(author.description, regex(teacher.regex, ignore_case = TRUE)) & user.promovierende==FALSE & user.prof==FALSE & user.jun.prof==FALSE & str_detect(author.description, regex( "Lehrerbildung|Lehrer(\\*|:)innenbil|teacher education", ignore_case = TRUE), negate = TRUE), TRUE, FALSE)) %>%
+
+  # Other entities
+  mutate(user.media.rep = str_detect(author.name, regex(media.regex, ignore_case = TRUE))) %>%
+  mutate(user.media.rep = str_detect(author.username, regex(media.regex, ignore_case = TRUE))) %>%
+    mutate(user.media.rep = str_detect(author.description, regex(media.regex, ignore_case = TRUE))) %>%
+  
+      mutate(user.institution = str_detect(author.name, regex(institution.regex, ignore_case = TRUE))) %>%
+  mutate(user.institution = str_detect(author.username, regex(institution.regex, ignore_case = TRUE)))
+
+# Replace NAs with FALSE
+colnames(users2)
+users2[,6:ncol(users2)][is.na(users2[,6:ncol(users2)])] <- FALSE
+
+# View results
+#users2 %>% select(author.name, author.description, starts_with("user")) %>% View()
+
+# Cross-tabulate results
+crossprod(as.matrix(users2[,6:ncol(users2)]))
+
+# Exploring cases of double classifications
+users2 %>% filter(user.prof==TRUE & user.politician==TRUE) %>% select(starts_with("author")) # Only one of those is really both
+
+users2 %>% filter(user.prof==TRUE & user.media.rep==TRUE) %>% select(starts_with("author")) # These are all professors only
+
+users2 %>% filter(user.academic.other==TRUE & user.media.rep==TRUE) %>% select(starts_with("author")) # ?
+
+users2 %>% filter(user.postdoc==TRUE & user.student==TRUE) %>% select(starts_with("author")) # This doesn't work at all :/
+
+
+```
